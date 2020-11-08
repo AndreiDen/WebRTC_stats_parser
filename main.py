@@ -36,7 +36,6 @@ def get_timestamp_list(stats):
     for _ in range(ticks):
         timestamp_list.append({event_time: {}})
         event_time += timedelta(seconds=1)
-
     return timestamp_list
 
 

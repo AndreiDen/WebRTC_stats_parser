@@ -1,0 +1,51 @@
+CREATE USER 'admin'@'%' IDENTIFIED BY 'admin';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'%';
+FLUSH PRIVILEGES;
+
+CREATE DATABASE webrtcStatsTest;
+
+create table test2
+(
+	interview VARCHAR(50) null,
+	interviewStatus VARCHAR(50) null,
+	userName VARCHAR(50) null,
+    dateTimeStamp datetime null,
+	peerConnection VARCHAR(50) null,
+	peerConnectionType VARCHAR(50) null,
+	inbound_audio_packets_received_per_second int null,
+	inbound_audio_bytes_received_per_second int null,
+	inbound_audio_packets_lost int null,
+	inbound_audio_jitter int null,
+	inbound_audio_jitter_buffer_delay int null,
+	inbound_audio_total_samples_received int null,
+	inbound_audio_level int null,
+	inbound_audio_energy int null,
+	inbound_audio_round_trip_time int null,
+	inbound_video_packets_received_per_second int null,
+	inbound_video_bytes_received_per_second int null,
+	inbound_video_packets_lost int null,
+	inbound_video_frame_width int null,
+	inbound_video_frame_height int null,
+	inbound_video_frames_per_second int null,
+	inbound_video_frames_received int null,
+	inbound_video_frames_decoded int null,
+	inbound_video_frames_decoded_per_second int null,
+	inbound_video_frames_dropped int null,
+	inbound_video_jitter int null,
+	inbound_video_round_trip_time int null,
+	outbound_audio_packets_sent_per_second int null,
+	outbound_audio_bytes_sent_per_second int null,
+	outbound_video_packets_sent_per_second int null,
+	outbound_video_bytes_sent_per_second int null,
+	outbound_video_frames_encoded int null,
+	outbound_video_frames_encoded_per_second int null,
+	outbound_video_frames_sent int null,
+	outbound_video_quality_limitation_reason text null,
+	outbound_video_quality_limitation_resolution_change text null,
+	outbound_video_frame_width int null,
+	outbound_video_frame_height int null,
+	outbound_video_frames_per_second int null,
+	UNIQUE KEY(interview,dateTimeStamp,peerConnection)
+);
+
+
