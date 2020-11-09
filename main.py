@@ -26,50 +26,74 @@ outbound_video_functions = [get_outbound_video_packets_sent_per_second, get_outb
                             get_outbound_video_frame_height, get_outbound_video_frames_per_second]
 
 
-def get_timestamp_list(stats):
-    for _ in stats.values():
-        start_time = datetime.strptime(_['startTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        end_time = datetime.strptime(_['endTime'], '%Y-%m-%dT%H:%M:%S.%fZ')
+def iterate_through_functions(stat_data):
+    array = dict()
+    for funct in [*inbound_audio_functions, *inbound_video_functions]:
+        new_stat_title, new_stat_content = funct(stat_data)
+        new_stat_data = create_timestamped_stat_data(new_stat_title, new_stat_content)
+        array = merge_stats(array, new_stat_data)
+    return array
+
+
+def merge_stats(array, stat_data):
+    stat_data = convert_stat_data_to_dict(stat_data)
+
+    for timestamp in stat_data.keys():
+        if timestamp not in array.keys():
+            array[timestamp] = stat_data[timestamp]
+        else:
+            array[timestamp] = {**array[timestamp], **stat_data[timestamp]}
+    return array
+
+
+def convert_stat_data_to_dict(stat_data):
+    output = dict()
+    for stat_value in stat_data:
+        output[next(iter(stat_value))] = stat_value[next(iter(stat_value))]
+    return output
+
+
+def create_timestamped_stat_data(new_stat_title, new_stat_content):
+    timestamped_stat_data = get_timestamp_list(new_stat_content)
+    for _ in new_stat_content.values():
+        v_list = _['values'][1:-1]
+        v_list = [round(float(_)) for _ in v_list.split(',')]
+    for _ in timestamped_stat_data:
+        position = timestamped_stat_data.index(_)
+        timestamped_data = timestamped_stat_data[position]
+        timestamped_key = next(iter(timestamped_data))
+        timestamped_value = timestamped_data[timestamped_key]
+        timestamped_value[new_stat_title] = v_list[position]
+    return timestamped_stat_data
+
+
+def get_timestamp_list(new_stat_content):
+    stat_values = new_stat_content[next(iter(new_stat_content))]
+    start_time = datetime.strptime(stat_values['startTime'][:-5], '%Y-%m-%dT%H:%M:%S')
+    end_time = datetime.strptime(stat_values['endTime'][:-5], '%Y-%m-%dT%H:%M:%S')
     ticks = (end_time - start_time).seconds
     timestamp_list = list()
     event_time = start_time
     for _ in range(ticks):
-        timestamp_list.append({event_time: {}})
+        timestamp_list.append({event_time.strftime("%Y-%m-%d %H:%M:%S"): {}})
         event_time += timedelta(seconds=1)
     return timestamp_list
 
 
-def add_stats_to_list(stats_list, new_stat, new_stat_title):
-    for _ in new_stat.values():
-        v_list = _['values'][1:-1]
-        v_list = [round(float(_)) for _ in v_list.split(',')]
-    for _ in stats_list:
-        position = stats_list.index(_)
-        timestamped_data = stats_list[position]
-        timestamped_key = next(iter(timestamped_data))
-        timestamped_value = timestamped_data[timestamped_key]
-        timestamped_value[new_stat_title] = v_list[position]
-    return (stats_list)
-
-
-def iterate_through_functions(stat_data):
-    _, stats = get_inbound_audio_bytes_received_per_second(stat_data)
-    stats_list = get_timestamp_list(stats)
-    for funct in inbound_audio_functions:
-        new_stat_title, new_stat = funct(stat_data)
-        add_stats_to_list(stats_list, new_stat, new_stat_title)
-    for funct in inbound_video_functions:
-        new_stat_title, new_stat = funct(stat_data)
-        add_stats_to_list(stats_list, new_stat, new_stat_title)
-    return stats_list
+def find_interview_id(url):
+    start = 'interviews/'
+    end = '/online'
+    return url[url.find(start)+len(start):url.rfind(end)]
 
 
 if __name__ == '__main__':
-    with open('webrtc_internals_dump_3.txt') as raw_stats:
+    with open('webrtc_internals_dump_reconnected.txt') as raw_stats:
         all_data = json.load(raw_stats)
 
-    stat_data = all_data['PeerConnections']['55942-1']['stats']
-
-    stats_parsed = iterate_through_functions(stat_data)
-
-    add_stats_row_to_database(stats_parsed)
+    for peer_connection_id, peer_connection_data in all_data['PeerConnections'].items():
+        print('\npeer connection id:', peer_connection_id)
+        stat_data = peer_connection_data['stats']
+        stats_parsed = iterate_through_functions(stat_data)
+        interview_url = peer_connection_data['url']
+        interview_id = find_interview_id(interview_url)
+        add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id)

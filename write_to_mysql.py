@@ -1,14 +1,19 @@
 import mysql.connector
 from datetime import datetime
+from pprint import pprint
 
 
+def r(key):
+    if key in stats_array.keys():
+        return f"'{stats_array[key]}'"
+    else:
+        return """'None'"""
 
 
-def add_stats_row_to_database(stats_parsed):
-    interview_title = 'interview4'
+def add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id):
+    global stats_array
     interview_status = 'past'
     user_name = 'Bob Ross'
-    peer_connection = '55942-1'
     peer_connection_type = 'inbound'
 
     db = mysql.connector.connect(host='10.1.10.106',
@@ -17,12 +22,8 @@ def add_stats_row_to_database(stats_parsed):
                                  password='admin',
                                  database='webrtcStatsTest')
     cursor = db.cursor()
-
-    for data in stats_parsed:
-        date_time_stamp = next(iter(data))
-        d = data[date_time_stamp]
-        date_time_stamp = date_time_stamp.strftime("%Y-%m-%d %H:%M:%S")
-
+    for date_time_stamp in stats_parsed.keys():
+        stats_array = stats_parsed[date_time_stamp]
         add_stat = ("INSERT IGNORE INTO test2 (interview, interviewStatus, userName, dateTimeStamp, peerConnection, peerConnectionType, inbound_audio_packets_received_per_second, inbound_audio_bytes_received_per_second, inbound_audio_packets_lost, "
                     "inbound_audio_jitter, inbound_audio_jitter_buffer_delay, inbound_audio_total_samples_received, inbound_audio_level, inbound_audio_energy,"
                     "inbound_video_packets_received_per_second, inbound_video_bytes_received_per_second, "
@@ -30,15 +31,15 @@ def add_stats_row_to_database(stats_parsed):
                     "inbound_video_frame_width, inbound_video_frame_height, inbound_video_frames_per_second, "
                     "inbound_video_frames_decoded, inbound_video_frames_decoded_per_second, "
                     "inbound_video_frames_received, inbound_video_frames_dropped) "
-                    f"VALUES ('{interview_title}', '{interview_status}', '{user_name}', '{date_time_stamp}', '{peer_connection}', '{peer_connection_type}', "
-                    f"'{d['inbound_audio_packets_received_per_second']}', '{d['inbound_audio_bytes_received_per_second']}', '{d['inbound_audio_packets_lost']}', "
-                    f"'{d['inbound_audio_jitter']}', '{d['inbound_audio_jitter_buffer_delay']}', '{d['inbound_audio_total_samples_received']}', "
-                    f"'{d['inbound_audio_level']}', '{d['inbound_audio_energy']}',"
-                    f"'{d['inbound_video_packets_received_per_second']}', '{d['inbound_video_bytes_received_per_second']}', "
-                    f"'{d['inbound_video_packets_lost']}', "
-                    f"'{d['inbound_video_frame_width']}', '{d['inbound_video_frame_height']}', '{d['inbound_video_frames_per_second']}',"
-                    f"'{d['inbound_video_frames_decoded']}', '{d['inbound_video_frames_decoded_per_second']}', "
-                    f"'{d['inbound_video_frames_received']}', '{d['inbound_video_frames_dropped']}')")
+                    f"VALUES ('{interview_id}', '{interview_status}', '{user_name}', '{date_time_stamp}', '{peer_connection_id}', '{peer_connection_type}', "
+                    f"{r('inbound_audio_packets_received_per_second')}, {r('inbound_audio_bytes_received_per_second')}, {r('inbound_audio_packets_lost')}, "
+                    f"{r('inbound_audio_jitter')}, {r('inbound_audio_jitter_buffer_delay')}, {r('inbound_audio_total_samples_received')}, "
+                    f"{r('inbound_audio_level')}, {r('inbound_audio_energy')},"
+                    f"{r('inbound_video_packets_received_per_second')}, {r('inbound_video_bytes_received_per_second')}, "
+                    f"{r('inbound_video_packets_lost')}, "
+                    f"{r('inbound_video_frame_width')}, {r('inbound_video_frame_height')}, {r('inbound_video_frames_per_second')},"
+                    f"{r('inbound_video_frames_decoded')}, {r('inbound_video_frames_decoded_per_second')}, "
+                    f"{r('inbound_video_frames_received')}, {r('inbound_video_frames_dropped')})")
 
         cursor.execute(add_stat)
 
