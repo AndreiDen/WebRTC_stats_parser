@@ -1,6 +1,21 @@
 import mysql.connector
-from datetime import datetime
+import requests
+import json
 from pprint import pprint
+import datetime
+
+
+def timestamp():
+    now = datetime.datetime.now()
+    return now.strftime("%H:%M:%S :")
+
+
+def fetch_webrtc_stats(robot_ip):
+    url = f"http://{robot_ip}:5000"
+    print(timestamp(), f'fetching stats from {robot_ip}')
+    r = requests.get(url)
+    json_response = json.loads(r.content.decode('utf-8'))
+    return json_response
 
 
 def r(key):
@@ -65,7 +80,6 @@ def form_querry(peer_connection_id, peer_connection_data, parsed_stats, date_tim
         f"{r('OutboundVideo_frameWidth')}, {r('OutboundVideo_frameHeight')}"
         f")"
     )
-
     if peer_connection_type == 'inbound':
         querry = f"{unified_fields}{inbound_fields}{unified_data}{inbound_data}"
     elif peer_connection_type == 'outbound':
@@ -80,14 +94,21 @@ def add_stats_row_to_database(parsed_peer_connections_data):
                                  password='admin',
                                  database='webrtcStatsTest')
     cursor = db.cursor()
+    print(timestamp(), 'Creating MysQL querries')
     for peer_connection_id, peer_connection_data in parsed_peer_connections_data.items():
         parsed_stats = peer_connection_data['parsed_stats']
 
         for date_time_stamp in parsed_stats.keys():
             querry = form_querry(peer_connection_id, peer_connection_data, parsed_stats, date_time_stamp)
             cursor.execute(querry.encode('utf-8'))
-
+    print(timestamp(), 'send to DB')
     db.commit()
     cursor.close()
     db.close()
+    print(timestamp(), 'writted to DB')
 
+
+if __name__ == '__main__':
+    robot_ip = '10.1.10.107'
+    parsed_peer_connections_data = fetch_webrtc_stats(robot_ip)
+    add_stats_row_to_database(parsed_peer_connections_data)

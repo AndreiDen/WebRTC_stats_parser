@@ -2,11 +2,10 @@ import json
 from pprint import pprint
 from datetime import datetime, timedelta
 
-from stats_list import *
-from write_to_mysql import *
+from old_files.stats_list import *
 
 
-def parse_file_stats(stats_data):
+def perform_parsing(stats_data):
     array = dict()
     for key in list(stats_data.keys()):  # detecting connection type
         if key.startswith('RTCOutboundRTPAudioStream') and key.endswith('headerBytesSent'):
@@ -90,7 +89,7 @@ def iterate_through_peer_connections(all_data):
     for peer_connection_id, peer_connection_data in all_data['PeerConnections'].items():
         interview_id = find_interview_id(peer_connection_data['url'])
         stat_data = peer_connection_data['stats']
-        peer_connection_type, stats_parsed = parse_file_stats(stat_data)
+        peer_connection_type, stats_parsed = perform_parsing(stat_data)
         parsed_peer_connections_data[peer_connection_id] = {'interview_id': interview_id,
                                                             'connection_type': peer_connection_type,
                                                             'parsed_stats': stats_parsed}
@@ -105,11 +104,17 @@ def define_connection_type(stats_parsed):
         return 'inbound'
 
 
+def parse_webrtc_local_dump(filename):
+    with open(filename) as raw_stats:
+        all_data = json.load(raw_stats)
+        parsed_peer_connections_data = iterate_through_peer_connections(all_data)
+        return(parsed_peer_connections_data)
+
+
 if __name__ == '__main__':
     print('\n\n')
-    with open('webrtc_respondent_moder_1.txt') as raw_stats:
+    with open('../webrtc_respondent_moder_1.txt') as raw_stats:
         all_data = json.load(raw_stats)
         parsed_peer_connections_data = iterate_through_peer_connections(all_data)
         pprint(parsed_peer_connections_data)
 
-        add_stats_row_to_database(parsed_peer_connections_data)
