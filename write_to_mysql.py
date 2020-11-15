@@ -4,18 +4,19 @@ from pprint import pprint
 
 
 def r(key):
-    if key in peer_connection_data.keys():
-        return f"'{peer_connection_data[key]}'"
+    if key in stat_tick.keys():
+        return f"'{stat_tick[key]}'"
     else:
         return """'None'"""
 
 
-def form_querry(peer_connection_id, peer_connection_data, date_time_stamp):
+def form_querry(peer_connection_id, peer_connection_data, parsed_stats, date_time_stamp):
     interview_status = 'Dummy_active'
     user_name = 'Dummy_name'
     peer_connection_type = peer_connection_data['connection_type']
     interview_id = peer_connection_data['interview_id']
-
+    global stat_tick
+    stat_tick = parsed_stats[date_time_stamp]
 
     unified_fields = ("INSERT IGNORE INTO test2 (interview, interviewStatus, userName, "
                       "dateTimeStamp, peerConnection, peerConnectionType, ")
@@ -73,7 +74,6 @@ def form_querry(peer_connection_id, peer_connection_data, date_time_stamp):
 
 
 def add_stats_row_to_database(parsed_peer_connections_data):
-    global peer_connection_data
     db = mysql.connector.connect(host='10.1.10.106',
                                  port=3306,
                                  user='admin',
@@ -84,8 +84,7 @@ def add_stats_row_to_database(parsed_peer_connections_data):
         parsed_stats = peer_connection_data['parsed_stats']
 
         for date_time_stamp in parsed_stats.keys():
-            querry = form_querry(peer_connection_id, peer_connection_data, date_time_stamp)
-            pprint(querry)
+            querry = form_querry(peer_connection_id, peer_connection_data, parsed_stats, date_time_stamp)
             cursor.execute(querry.encode('utf-8'))
 
     db.commit()
