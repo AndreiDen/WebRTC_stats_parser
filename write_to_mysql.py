@@ -10,7 +10,7 @@ def r(key):
         return """'None'"""
 
 
-def add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id):
+def add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id, peer_connection_type):
     global stats_array
     interview_status = 'past'
     user_name = 'Bob Ross'
@@ -51,7 +51,6 @@ def add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id):
                     f"{r('InboundVideo_frameWidth')}, {r('InboundVideo_frameHeight')}, {r('InboundVideo_framesPerSecond')},"
                     f"{r('InboundVideo_framesDecoded')}, {r('InboundVideo_[framesDecoded/s]')}, "
                     f"{r('InboundVideo_framesReceived')}, {r('InboundVideo_framesDropped')})")
-        print(add_stat)
         cursor.execute(add_stat.encode('utf-8'))
 
     db.commit()
