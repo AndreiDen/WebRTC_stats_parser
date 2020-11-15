@@ -8,7 +8,7 @@ from write_to_mysql import *
 
 def parse_file_stats(stats_data):
     array = dict()
-    for key in list(stats_data.keys()):
+    for key in list(stats_data.keys()):  # detecting connection type
         if key.startswith('RTCOutboundRTPAudioStream') and key.endswith('headerBytesSent'):
             peer_connection_type = 'outbound'
             keys_dict = {'RTCOutboundRTPAudioStream': parsed_stat_list['RTCOutboundRTPAudioStream'],
@@ -19,8 +19,7 @@ def parse_file_stats(stats_data):
             keys_dict = {'RTCInboundRTPAudioStream': parsed_stat_list['RTCInboundRTPAudioStream'],
                              'RTCInboundRTPVideoStream': parsed_stat_list['RTCInboundRTPVideoStream']}
 
-
-    for stream, stats in keys_dict.items():
+    for stream, stats in keys_dict.items():  # getting stats relevant to the connectin type
         for stat in stats:
             to_remove = ['RTC', 'RTP', 'Stream']
             stream_title = stream
@@ -32,8 +31,6 @@ def parse_file_stats(stats_data):
                     new_stat_content = ({key: value})
                     new_stat_data = create_timestamped_stat_data(new_stat_title, new_stat_content)
                     array = merge_stats(array, new_stat_data)
-
-    print('\n\n')
     return peer_connection_type, array
 
 
@@ -94,8 +91,6 @@ def iterate_through_peer_connections(all_data):
         interview_id = find_interview_id(peer_connection_data['url'])
         stat_data = peer_connection_data['stats']
         peer_connection_type, stats_parsed = parse_file_stats(stat_data)
-
-
         parsed_peer_connections_data[peer_connection_id] = {'interview_id': interview_id,
                                                             'connection_type': peer_connection_type,
                                                             'parsed_stats': stats_parsed}
@@ -114,10 +109,7 @@ if __name__ == '__main__':
     print('\n\n')
     with open('webrtc_respondent_moder_1.txt') as raw_stats:
         all_data = json.load(raw_stats)
-        parsed_data = iterate_through_peer_connections(all_data)
-        pprint(parsed_data)
+        parsed_peer_connections_data = iterate_through_peer_connections(all_data)
+        pprint(parsed_peer_connections_data)
 
-        #
-        # interview_url = peer_connection_data['url']
-        # interview_id = find_interview_id(interview_url)
-        # add_stats_row_to_database(parsed_data, interview_id, peer_connection_id)
+        add_stats_row_to_database(parsed_peer_connections_data)
