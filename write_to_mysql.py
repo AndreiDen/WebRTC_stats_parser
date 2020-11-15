@@ -24,24 +24,35 @@ def add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id):
     cursor = db.cursor()
     for date_time_stamp in stats_parsed.keys():
         stats_array = stats_parsed[date_time_stamp]
-        add_stat = ("INSERT IGNORE INTO test2 (interview, interviewStatus, userName, dateTimeStamp, peerConnection, peerConnectionType, inbound_audio_packets_received_per_second, inbound_audio_bytes_received_per_second, inbound_audio_packets_lost, "
-                    "inbound_audio_jitter, inbound_audio_jitter_buffer_delay, inbound_audio_total_samples_received, inbound_audio_level, inbound_audio_energy,"
-                    "inbound_video_packets_received_per_second, inbound_video_bytes_received_per_second, "
-                    "inbound_video_packets_lost, "
-                    "inbound_video_frame_width, inbound_video_frame_height, inbound_video_frames_per_second, "
-                    "inbound_video_frames_decoded, inbound_video_frames_decoded_per_second, "
-                    "inbound_video_frames_received, inbound_video_frames_dropped) "
+        add_stat = ("INSERT IGNORE INTO test2 (interview, interviewStatus, userName, dateTimeStamp, peerConnection, peerConnectionType, "
+                    "InboundAudio_packetsReceivedS, InboundAudio_bytesReceived_in_bitsS, InboundAudio_packetsLost, "
+                    "InboundAudio_jitter, InboundAudio_jitterBufferDelay, InboundAudio_totalSamplesReceived, "
+                    "InboundAudio_audioLevel, InboundAudio_totalAudioEnergy,"
+                    # "InboundAudio_roundTripTime,"
+                    "InboundVideo_packetsReceivedS, InboundVideo_bytesReceived_in_bitsS, "
+                    "InboundVideo_packetsLost, "
+                    "InboundVideo_frameWidth, InboundVideo_frameHeight, InboundVideo_framesPerSecond, "
+                    "InboundVideo_framesDecoded, InboundVideo_framesDecodedS, "
+                    "InboundVideo_framesReceived, InboundVideo_framesDropped) "
+                    # "InboundVideo_roundTripTime,"
+                    # "OutboundAudio_packetsSentS, OutboundAudio_bytesSent_in_bitsS,"
+                    # "OutboundVideo_packetsSentS, OutboundVideo_bytesSent_in_bitsS, "
+                    # "OutboundVideo_framesEncoded, OutboundVideo_framesEncodedS, OutboundVideo_framesSent, OutboundVideo_framesPerSecond"
+                    # "OutboundVideo_QualityLimitationReason, OutboundVideo_QualityLimitationResolutionChange, "
+                    # "OutboundVideo_frameWidth, OutboundVideo_frameHeight, "
+                    
+                    
                     f"VALUES ('{interview_id}', '{interview_status}', '{user_name}', '{date_time_stamp}', '{peer_connection_id}', '{peer_connection_type}', "
-                    f"{r('inbound_audio_packets_received_per_second')}, {r('inbound_audio_bytes_received_per_second')}, {r('inbound_audio_packets_lost')}, "
-                    f"{r('inbound_audio_jitter')}, {r('inbound_audio_jitter_buffer_delay')}, {r('inbound_audio_total_samples_received')}, "
-                    f"{r('inbound_audio_level')}, {r('inbound_audio_energy')},"
-                    f"{r('inbound_video_packets_received_per_second')}, {r('inbound_video_bytes_received_per_second')}, "
-                    f"{r('inbound_video_packets_lost')}, "
-                    f"{r('inbound_video_frame_width')}, {r('inbound_video_frame_height')}, {r('inbound_video_frames_per_second')},"
-                    f"{r('inbound_video_frames_decoded')}, {r('inbound_video_frames_decoded_per_second')}, "
-                    f"{r('inbound_video_frames_received')}, {r('inbound_video_frames_dropped')})")
-
-        cursor.execute(add_stat)
+                    f"{r('InboundAudio_[packetsReceived/s]')}, {r('InboundAudio_[bytesReceived_in_bits/s]')}, {r('InboundAudio_packetsLost')}, "
+                    f"{r('InboundAudio_jitter')}, {r('InboundAudio_jitterBufferDelay')}, {r('InboundAudio_totalSamplesReceived')}, "
+                    f"{r('InboundAudio_audioLevel')}, {r('InboundAudio_totalAudioEnergy')},"
+                    f"{r('InboundVideo_[packetsReceived/s]')}, {r('InboundVideo_[bytesReceived_in_bits/s]')}, "
+                    f"{r('InboundVideo_packetsLost')}, "
+                    f"{r('InboundVideo_frameWidth')}, {r('InboundVideo_frameHeight')}, {r('InboundVideo_framesPerSecond')},"
+                    f"{r('InboundVideo_framesDecoded')}, {r('InboundVideo_[framesDecoded/s]')}, "
+                    f"{r('InboundVideo_framesReceived')}, {r('InboundVideo_framesDropped')})")
+        print(add_stat)
+        cursor.execute(add_stat.encode('utf-8'))
 
     db.commit()
     cursor.close()

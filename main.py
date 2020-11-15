@@ -3,6 +3,7 @@ from pprint import pprint
 from datetime import datetime, timedelta
 
 from parse_functions import *
+from parse_functions_refactored import *
 from write_to_mysql import *
 
 inbound_audio_functions = [get_inbound_audio_packets_received_per_second, get_inbound_audio_bytes_received_per_second,
@@ -33,6 +34,26 @@ def iterate_through_functions(stat_data):
         new_stat_data = create_timestamped_stat_data(new_stat_title, new_stat_content)
         array = merge_stats(array, new_stat_data)
     return array
+
+
+def parse_file_stats(stats_data):
+    array = dict()
+    for stream, stats in parsed_stat_list.items():
+        for stat in stats:
+            # print(stream, stat)
+            to_remove = ['RTC', 'RTP', 'Stream']
+            stream_title = stream
+            for _ in to_remove:
+                stream_title = stream_title.replace(_, '')
+            new_stat_title = ''.join(stream_title.split()) + '_' + stat
+            for key, value in stats_data.items():
+                if key.startswith(stream) and key.endswith(stat):
+                    new_stat_content = ({key: value})
+                    new_stat_data = create_timestamped_stat_data(new_stat_title, new_stat_content)
+                    array = merge_stats(array, new_stat_data)
+    return array
+
+
 
 
 def merge_stats(array, stat_data):
@@ -87,13 +108,16 @@ def find_interview_id(url):
 
 
 if __name__ == '__main__':
-    with open('webrtc_internals_dump_reconnected.txt') as raw_stats:
+    with open('webrtc_observer_moder_only_1.txt') as raw_stats:
         all_data = json.load(raw_stats)
 
     for peer_connection_id, peer_connection_data in all_data['PeerConnections'].items():
         print('\npeer connection id:', peer_connection_id)
         stat_data = peer_connection_data['stats']
-        stats_parsed = iterate_through_functions(stat_data)
+        # stats_parsed = iterate_through_functions(stat_data)
+        stats_parsed = parse_file_stats(stat_data)
+        # pprint(stats_parsed)
+
         interview_url = peer_connection_data['url']
         interview_id = find_interview_id(interview_url)
         add_stats_row_to_database(stats_parsed, interview_id, peer_connection_id)
